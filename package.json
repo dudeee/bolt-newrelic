@@ -1,0 +1,23 @@
+{
+  "name": "bolt-newrelic",
+  "version": "1.0.0",
+  "description": "Bolt newrelic integration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdibaiee/bolt-newrelic.git"
+  },
+  "keywords": [
+    "newrelic",
+    "bolt"
+  ],
+  "author": "Mahdi Dibaiee <mdibaiee@aol.com> (http://dibaiee.ir/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mdibaiee/bolt-newrelic/issues"
+  },
+  "homepage": "https://github.com/mdibaiee/bolt-newrelic#readme"
+}
