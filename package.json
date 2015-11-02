@@ -1,8 +1,8 @@
 {
   "name": "bolt-newrelic",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Bolt newrelic integration",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +23,9 @@
     "babel-core": "6.0.16",
     "babel-preset-es2015": "6.0.15",
     "babel-preset-stage-2": "6.0.15",
+    "grunt": "0.4.5",
+    "grunt-babel": "6.0.0",
+    "grunt-contrib-watch": "0.6.1",
     "newrelic-api": "^1.0.0"
   },
   "homepage": "https://github.com/mdibaiee/bolt-newrelic#readme"
