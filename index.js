@@ -3,7 +3,9 @@ import Client from 'newrelic-api';
 const FAIL = 'Operation failed :(';
 
 export default bot => {
-  let betternet = new Client({
+  let { compare } = bot.utils;
+
+  let client = new Client({
     key: bot.data.newrelic.key
   });
 
@@ -14,7 +16,7 @@ export default bot => {
     let { data } = job.attrs;
 
     model.findOne({ id: data.app.id }).exec().then(enabled => {
-      let index = ENABLED.findIndex({ id: data.app.id });
+      let index = ENABLED.findIndex(i => i.id === data.app.id);
 
       if (!enabled) {
         if (index > -1) {
@@ -29,19 +31,31 @@ export default bot => {
         });
       }
 
-      betternet.error({
+      let { threshold } = bot.data.newrelic;
+
+      client.apdex({
         app: data.app.id
       }).then(rate => {
-        console.log(`Application ${data.app.name} has ${rate} error rate`);
-        if (rate > 2) {
+        if (compare(threshold.apdex, rate)) {
           const msg = `Application ${data.app.name}
-                       has greater than 2% error rate!`;
+                       's apdex score has dropped below 0.7!`;
 
           bot.sendMessage(bot.data.newrelic.target, msg);
         }
 
         done();
-      });
+      }).then(() => {
+        return client.error({
+          app: data.app.id
+        }).then(rate => {
+          if (compare(threshold.error, rate)) {
+            const msg = `Application ${data.app.name}
+                         's error rating is over 2%!`;
+
+            bot.sendMessage(bot.data.newrelic.target, msg);
+          }
+        })
+      }).then(done);
     });
   });
 
@@ -50,10 +64,10 @@ export default bot => {
     id: String
   });
 
-  betternet.apps().then(apps => {
+  client.apps().then(apps => {
     APPS = apps;
 
-    let enabled = model.find().select('name').exec().then(enabled => {
+    let enabled = model.find().exec().then(enabled => {
       ENABLED = enabled;
       if (!enabled.length) {
         return Promise.all(apps.map(app => {
@@ -120,15 +134,11 @@ export default bot => {
         });
       }
     }
-
-    if (command === 'help') {
-      message.reply(`
-        list - show a list of newrelic applications\n
-        enable <appname> - enable application monitoring\n
-        disable <appname> - disable application monitoring
-      `);
-    }
-
   }, { permissions: ['admin', 'server'] });
-}
 
+  bot.help('newrelic', 'manage newrelic alerts', `
+    list - show a list of newrelic applications\n
+    enable <appname> - enable application monitoring\n
+    disable <appname> - disable application monitoring
+  `);
+}

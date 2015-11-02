@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/mdibaiee/bolt-newrelic/issues"
   },
+  "dependencies": {
+    "newrelic-api": "^1.0.0"
+  },
   "homepage": "https://github.com/mdibaiee/bolt-newrelic#readme"
 }
