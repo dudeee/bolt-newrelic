@@ -44,7 +44,7 @@ export default bot => {
       }).then(rate => {
         if (compare(threshold.apdex, rate)) {
           const msg = `Application ${data.app.name}
-                       's apdex score has dropped below 0.7!`;
+                       's apdex score has dropped below threshold!`;
 
           bot.sendMessage(bot.data.newrelic.target, msg);
         }
@@ -56,7 +56,7 @@ export default bot => {
         }).then(rate => {
           if (compare(threshold.error, rate)) {
             const msg = `Application ${data.app.name}
-                         's error rating is over 2%!`;
+                         's error rating is over threshold!`;
 
             bot.sendMessage(bot.data.newrelic.target, msg);
           }
