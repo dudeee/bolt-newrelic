@@ -110,9 +110,8 @@ exports['default'] = function (bot) {
         for (var _iterator = apps[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
           var app = _step.value;
 
-          console.log('fn');
           fn({ attrs: { data: { app: app } } });
-          // agenda.every('* * * * * *', 'monitor-newrelic', { app });
+          agenda.every('15 minutes', 'monitor-newrelic', { app: app });
         }
       } catch (err) {
         _didIteratorError = true;
