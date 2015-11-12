@@ -17,9 +17,9 @@ export default bot => {
     id: String
   });
 
-
-  bot.agenda.define('monitor-newrelic', (job, done) => {
+  const fn = (job, done) => {
     let { data } = job.attrs;
+    let { app } = data;
 
     model.findOne({ id: data.app.id }).exec().then(enabled => {
       bot.log.debug('[newrelic] enabled applications', enabled);
@@ -41,11 +41,11 @@ export default bot => {
       let { threshold } = bot.data.newrelic;
 
       client.apdex({
-        app: data.app.id
+        app: app.id
       }).then(rate => {
-        bot.log.debug('[newrelic] %s\'s apdex rate: %s', data.app.name, rate);
+        bot.log.verbose('[newrelic] %s\'s apdex rate: %d', app.name, rate);
         if (compare(threshold.apdex, rate)) {
-          const msg = `Application ${data.app.name}
+          const msg = `Application ${app.name}
                        's apdex score has dropped below threshold!`;
 
           bot.sendMessage(bot.data.newrelic.target, msg);
@@ -54,11 +54,11 @@ export default bot => {
         done();
       }).then(() => {
         return client.error({
-          app: data.app.id
+          app: app.id
         }).then(rate => {
-          bot.log.debug('[newrelic] %s\'s error rate: %s', data.app.name, rate);
+          bot.log.verbose('[newrelic] %s\'s error rate: %d', app.name, rate);
           if (compare(threshold.error, rate)) {
-            const msg = `Application ${data.app.name}
+            const msg = `Application ${app.name}
                          's error rating is over threshold!`;
 
             bot.sendMessage(bot.data.newrelic.target, msg);
@@ -66,7 +66,9 @@ export default bot => {
         })
       }).then(done);
     });
-  });
+  };
+
+  bot.agenda.define('monitor-newrelic', fn);
 
   bot.agenda.on('ready', () => {
     client.apps().then(apps => {
@@ -87,6 +89,7 @@ export default bot => {
       });
 
       for (let app of apps) {
+        fn({ attrs: { data: { app } } });
         agenda.every('15 minutes', 'monitor-newrelic', { app });
       }
     });

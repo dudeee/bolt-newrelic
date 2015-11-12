@@ -29,8 +29,9 @@ exports['default'] = function (bot) {
     id: String
   });
 
-  bot.agenda.define('monitor-newrelic', function (job, done) {
+  var fn = function fn(job, done) {
     var data = job.attrs.data;
+    var app = data.app;
 
     model.findOne({ id: data.app.id }).exec().then(function (enabled) {
       bot.log.debug('[newrelic] enabled applications', enabled);
@@ -54,11 +55,11 @@ exports['default'] = function (bot) {
       var threshold = bot.data.newrelic.threshold;
 
       client.apdex({
-        app: data.app.id
+        app: app.id
       }).then(function (rate) {
-        bot.log.debug('[newrelic] %s\'s apdex rate: %s', data.app.name, rate);
+        bot.log.verbose('[newrelic] %s\'s apdex rate: %d', app.name, rate);
         if (compare(threshold.apdex, rate)) {
-          var msg = 'Application ' + data.app.name + '\n                       \'s apdex score has dropped below threshold!';
+          var msg = 'Application ' + app.name + '\n                       \'s apdex score has dropped below threshold!';
 
           bot.sendMessage(bot.data.newrelic.target, msg);
         }
@@ -66,18 +67,20 @@ exports['default'] = function (bot) {
         done();
       }).then(function () {
         return client.error({
-          app: data.app.id
+          app: app.id
         }).then(function (rate) {
-          bot.log.debug('[newrelic] %s\'s error rate: %s', data.app.name, rate);
+          bot.log.verbose('[newrelic] %s\'s error rate: %d', app.name, rate);
           if (compare(threshold.error, rate)) {
-            var msg = 'Application ' + data.app.name + '\n                         \'s error rating is over threshold!';
+            var msg = 'Application ' + app.name + '\n                         \'s error rating is over threshold!';
 
             bot.sendMessage(bot.data.newrelic.target, msg);
           }
         });
       }).then(done);
     });
-  });
+  };
+
+  bot.agenda.define('monitor-newrelic', fn);
 
   bot.agenda.on('ready', function () {
     client.apps().then(function (apps) {
@@ -107,7 +110,9 @@ exports['default'] = function (bot) {
         for (var _iterator = apps[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
           var app = _step.value;
 
-          agenda.every('15 minutes', 'monitor-newrelic', { app: app });
+          console.log('fn');
+          fn({ attrs: { data: { app: app } } });
+          // agenda.every('* * * * * *', 'monitor-newrelic', { app });
         }
       } catch (err) {
         _didIteratorError = true;
