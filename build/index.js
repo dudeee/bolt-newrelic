@@ -1,25 +1,23 @@
 'use strict';
 
-var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
-
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 var _newrelicApi = require('newrelic-api');
 
 var _newrelicApi2 = _interopRequireDefault(_newrelicApi);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _typeof(obj) { return obj && obj.constructor === Symbol ? "symbol" : typeof obj; }
-
 var FAIL = 'Operation failed :(';
 
-exports.default = function (bot) {
+exports['default'] = function (bot) {
   var compare = bot.utils.compare;
 
-  var client = new _newrelicApi2.default({
+  var client = new _newrelicApi2['default']({
     key: bot.data.newrelic.key
   });
 
@@ -35,6 +33,7 @@ exports.default = function (bot) {
     var data = job.attrs.data;
 
     model.findOne({ id: data.app.id }).exec().then(function (enabled) {
+      console.log('enabled', enabled);
       var index = ENABLED.findIndex(function (i) {
         return i.id === data.app.id;
       });
@@ -54,11 +53,13 @@ exports.default = function (bot) {
 
       var threshold = bot.data.newrelic.threshold;
 
+      console.log('threshold', threshold);
       client.apdex({
         app: data.app.id
       }).then(function (rate) {
+        console.log('apdex', rate);
         if (compare(threshold.apdex, rate)) {
-          var msg = 'Application ' + data.app.name + '\n                       \'s apdex score has dropped below 0.7!';
+          var msg = 'Application ' + data.app.name + '\n                       \'s apdex score has dropped below threshold!';
 
           bot.sendMessage(bot.data.newrelic.target, msg);
         }
@@ -68,8 +69,9 @@ exports.default = function (bot) {
         return client.error({
           app: data.app.id
         }).then(function (rate) {
+          console.log('error', rate);
           if (compare(threshold.error, rate)) {
-            var msg = 'Application ' + data.app.name + '\n                         \'s error rating is over 2%!';
+            var msg = 'Application ' + data.app.name + '\n                         \'s error rating is over threshold!';
 
             bot.sendMessage(bot.data.newrelic.target, msg);
           }
@@ -81,6 +83,7 @@ exports.default = function (bot) {
   bot.agenda.on('ready', function () {
     client.apps().then(function (apps) {
       APPS = apps;
+      console.log('apps', apps);
 
       var enabled = model.find().exec().then(function (enabled) {
         ENABLED = enabled;
@@ -105,17 +108,15 @@ exports.default = function (bot) {
         for (var _iterator = apps[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
           var app = _step.value;
 
-          var job = bot.agenda.create('monitor-newrelic', { app: app });
-          job.repeatEvery('15 minutes');
-          job.save();
+          agenda.every('15 minutes', 'monitor-newrelic', { app: app });
         }
       } catch (err) {
         _didIteratorError = true;
         _iteratorError = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          if (!_iteratorNormalCompletion && _iterator['return']) {
+            _iterator['return']();
           }
         } finally {
           if (_didIteratorError) {
@@ -184,10 +185,12 @@ exports.default = function (bot) {
           }
         })();
 
-        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+        if (typeof _ret === 'object') return _ret.v;
       }
     }, { permissions: ['admin', 'server'] });
   });
 
   bot.help('newrelic', 'manage newrelic alerts', '\n    list — show a list of newrelic applications\n\n    enable <appname> — enable application monitoring\n\n    disable <appname> — disable application monitoring\n  ');
 };
+
+module.exports = exports['default'];

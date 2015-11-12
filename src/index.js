@@ -22,6 +22,7 @@ export default bot => {
     let { data } = job.attrs;
 
     model.findOne({ id: data.app.id }).exec().then(enabled => {
+      console.log('enabled', enabled);
       let index = ENABLED.findIndex(i => i.id === data.app.id);
 
       if (!enabled) {
@@ -39,9 +40,11 @@ export default bot => {
 
       let { threshold } = bot.data.newrelic;
 
+      console.log('threshold', threshold);
       client.apdex({
         app: data.app.id
       }).then(rate => {
+        console.log('apdex', rate);
         if (compare(threshold.apdex, rate)) {
           const msg = `Application ${data.app.name}
                        's apdex score has dropped below threshold!`;
@@ -54,6 +57,7 @@ export default bot => {
         return client.error({
           app: data.app.id
         }).then(rate => {
+          console.log('error', rate);
           if (compare(threshold.error, rate)) {
             const msg = `Application ${data.app.name}
                          's error rating is over threshold!`;
@@ -68,6 +72,7 @@ export default bot => {
   bot.agenda.on('ready', () => {
     client.apps().then(apps => {
       APPS = apps;
+      console.log('apps', apps);
 
       let enabled = model.find().exec().then(enabled => {
         ENABLED = enabled;
@@ -83,9 +88,7 @@ export default bot => {
       });
 
       for (let app of apps) {
-        let job = bot.agenda.create('monitor-newrelic', { app });
-        job.repeatEvery('15 minutes');
-        job.save();
+        agenda.every('15 minutes', 'monitor-newrelic', { app });
       }
     });
 
