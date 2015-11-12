@@ -33,7 +33,7 @@ exports['default'] = function (bot) {
     var data = job.attrs.data;
 
     model.findOne({ id: data.app.id }).exec().then(function (enabled) {
-      console.log('enabled', enabled);
+      bot.log.debug('[newrelic] enabled applications', enabled);
       var index = ENABLED.findIndex(function (i) {
         return i.id === data.app.id;
       });
@@ -53,11 +53,10 @@ exports['default'] = function (bot) {
 
       var threshold = bot.data.newrelic.threshold;
 
-      console.log('threshold', threshold);
       client.apdex({
         app: data.app.id
       }).then(function (rate) {
-        console.log('apdex', rate);
+        bot.log.debug('[newrelic] %s\'s apdex rate: %s', data.app.name, rate);
         if (compare(threshold.apdex, rate)) {
           var msg = 'Application ' + data.app.name + '\n                       \'s apdex score has dropped below threshold!';
 
@@ -69,7 +68,7 @@ exports['default'] = function (bot) {
         return client.error({
           app: data.app.id
         }).then(function (rate) {
-          console.log('error', rate);
+          bot.log.debug('[newrelic] %s\'s error rate: %s', data.app.name, rate);
           if (compare(threshold.error, rate)) {
             var msg = 'Application ' + data.app.name + '\n                         \'s error rating is over threshold!';
 
@@ -83,7 +82,7 @@ exports['default'] = function (bot) {
   bot.agenda.on('ready', function () {
     client.apps().then(function (apps) {
       APPS = apps;
-      console.log('apps', apps);
+      bot.log.debug('[newrelic] fetched applications', apps);
 
       var enabled = model.find().exec().then(function (enabled) {
         ENABLED = enabled;
@@ -190,7 +189,7 @@ exports['default'] = function (bot) {
     }, { permissions: ['admin', 'server'] });
   });
 
-  bot.help('newrelic', 'manage newrelic alerts', '\n    list — show a list of newrelic applications\n\n    enable <appname> — enable application monitoring\n\n    disable <appname> — disable application monitoring\n  ');
+  bot.help('newrelic', 'manage newrelic alerts', '\nlist — show a list of newrelic applications\n\nenable <appname> — enable application monitoring\n\ndisable <appname> — disable application monitoring');
 };
 
 module.exports = exports['default'];
