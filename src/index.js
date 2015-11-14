@@ -99,7 +99,7 @@ export default bot => {
 
       await bot.pocket.remove('newrelicapp', { id: target.id });
 
-      message.reply(`Enabled *${target.name}*.`)
+      message.reply(`Disabled *${target.name}*.`)
     }, { permissions: ['admin', 'server'] })
   })
 

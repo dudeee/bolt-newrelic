@@ -293,7 +293,7 @@ exports['default'] = function (bot) {
 
                 case 8:
 
-                  message.reply('Enabled *' + target.name + '*.');
+                  message.reply('Disabled *' + target.name + '*.');
 
                 case 9:
                 case 'end':
