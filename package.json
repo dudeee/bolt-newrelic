@@ -1,6 +1,6 @@
 {
   "name": "bolt-newrelic",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Bolt newrelic integration",
   "main": "build/index.js",
   "scripts": {

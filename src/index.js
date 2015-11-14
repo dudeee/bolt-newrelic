@@ -9,137 +9,98 @@ export default bot => {
     key: bot.data.newrelic.key
   });
 
-  let APPS = [];
-  let ENABLED = [];
-
-  let model = bot.pocket.model('NewrelicApp', {
+  let model = bot.pocket.model('newrelicapp', {
     name: String,
     id: String
   });
 
-  const fn = (job, done) => {
+  let { threshold, target } = bot.data.newrelic;
+
+  const isEnabled = async function(app) {
+    return !!(await model.findOne({ id: app.id }));
+  }
+
+  const process = async function(job) {
     let { data } = job.attrs;
     let { app } = data;
 
-    model.findOne({ id: data.app.id }).exec().then(enabled => {
-      bot.log.debug('[newrelic] enabled applications', enabled);
-      let index = ENABLED.findIndex(i => i.id === data.app.id);
+    let enable = await isEnabled(app);
+    if (!enable) return false;
 
-      if (!enabled) {
-        if (index > -1) {
-          ENABLED.splice(index, 1);
-        }
-        return;
-      }
-      if (index === -1) {
-        ENABLED.push({
-          id: data.app.id,
-          name: data.app.name
-        });
-      }
-
-      let { threshold } = bot.data.newrelic;
-
-      client.apdex({
-        app: app.id
-      }).then(rate => {
-        bot.log.verbose('[newrelic] %s\'s apdex rate: %d', app.name, rate);
-        if (compare(threshold.apdex, rate)) {
-          const msg = `Application ${app.name}
-                       's apdex score has dropped below threshold!`;
-
-          bot.sendMessage(bot.data.newrelic.target, msg);
-        }
-
-        done();
-      }).then(() => {
-        return client.error({
-          app: app.id
-        }).then(rate => {
-          bot.log.verbose('[newrelic] %s\'s error rate: %d', app.name, rate);
-          if (compare(threshold.error, rate)) {
-            const msg = `Application ${app.name}
-                         's error rating is over threshold!`;
-
-            bot.sendMessage(bot.data.newrelic.target, msg);
-          }
-        })
-      }).then(done);
+    let { average: apdex } = await client.apdex({
+      app: app.id
     });
+
+    if (compare(threshold.apdex, apdex)) {
+      bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
+      score is ${apdex}`);
+    }
+
+    let error = await client.error({
+      app: app.id
+    });
+
+    if (compare(threshold.error, error)) {
+      bot.sendMessage(target, `Newrelic Application *${app.name}*'s error rate
+      is ${error}!`);
+    }
   };
 
-  bot.agenda.define('monitor-newrelic', fn);
+  bot.agenda.define('monitor-newrelic', process);
 
-  bot.agenda.on('ready', () => {
-    client.apps().then(apps => {
-      APPS = apps;
-      bot.log.debug('[newrelic] fetched applications', apps);
+  bot.agenda.on('ready', async () => {
+    let apps = await client.apps();
+    let names = apps.map(app => app.name);
+    bot.log.verbose('[newrelic] fetched applications', names);
 
-      let enabled = model.find().exec().then(enabled => {
-        ENABLED = enabled;
-        if (!enabled.length) {
-          return Promise.all(apps.map(app => {
-            return bot.pocket.save('NewrelicApp', app);
-          }));
-        }
+    let enabled = await model.find().exec();
+    if (!enabled.length) {
+      await Promise.all(apps.map(app => {
+        return bot.pocket.save('NewrelicApp', app);
+      }));
+    }
 
-        return enabled.map(name => {
-          return apps.find(i => i.name === name);
-        })
-      });
+    for (let app of apps) {
+      bot.agenda.every('15 minutes', 'monitor-newrelic', { app });
+    }
 
-      for (let app of apps) {
-        fn({ attrs: { data: { app } } });
-        agenda.every('15 minutes', 'monitor-newrelic', { app });
-      }
-    });
+    bot.listen(/newrelic list/i, async (message) => {
+      let apps = await client.apps();
 
-    bot.listen(/newrelic (\w+)\s?(.*)?/i, message => {
-      let [, command, arg] = message.match;
+      const response = await Promise.all(apps.map(async (app, index) => {
+        let status = await isEnabled(app) ? 'Enabled' : 'Disabled';
 
-      if (command === 'list') {
-        const msg = APPS.map((app, index) => {
-          let status = ENABLED.find(i => i.name === app.name) ? 'Enabled'
-                                                              : 'Disabled';
-          return index + '. ' + app.name + ' – ' + status;
-        }).join('\n');
+        return `${index}. ${app.name} – ${status}`;
+      }));
 
-        return message.reply(msg);
-      }
-
-      if (command === 'enable' || command === 'disable') {
-        let target = APPS.find(i => i.name === arg);
-
-        if (!target) {
-          return message.reply(`Application ${arg} doesn't exist`);
-        }
-        if (command === 'enable') {
-          bot.pocket.save('NewrelicApp', target).then(() => {
-            message.reply(`Application ${arg} is enabled now.`);
-
-            let index = ENABLED.findIndex(i => i.id === target.id);
-            if (index === -1) {
-              ENABLED.push(target);
-            }
-          }, () => {
-            message.reply(FAIL);
-          });
-        }
-
-        if (command === 'disable') {
-          bot.pocket.remove('NewrelicApp', {id: target.id}).then(() => {
-            message.reply(`Application ${arg} is disabled now.`);
-
-            let index = ENABLED.findIndex(i => i.id === target.id);
-            if (index > -1) {
-              ENABLED.splice(index, 1);
-            }
-          }, () => {
-            message.reply(FAIL);
-          });
-        }
-      }
+      return message.reply(response.join('\n'));
     }, { permissions: ['admin', 'server'] });
+
+    bot.listen(/newrelic enable (.*)/i, async (message) => {
+      let [, app] = message.match;
+
+      let apps = await client.apps();
+
+      let target = isNaN(+app) ? apps.find(i => i.name === app)
+                               : apps[+app];
+
+      await bot.pocket.save('NewrelicApp', target);
+
+      message.reply(`Enabled *${target.name}*.`)
+    }, { permissions: ['admin', 'server'] });
+
+    bot.listen(/newrelic disable (.*)/i, async (message) => {
+      let [, app] = message.match;
+
+      let apps = await client.apps();
+
+      let target = isNaN(+app) ? apps.find(i => i.name === app)
+                               : apps[+app];
+
+      await bot.pocket.remove('NewrelicApp', { id: target.id });
+
+      message.reply(`Enabled *${target.name}*.`)
+    }, { permissions: ['admin', 'server'] })
   })
 
   bot.help('newrelic', 'manage newrelic alerts', `
