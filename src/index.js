@@ -84,7 +84,7 @@ export default bot => {
       let target = isNaN(+app) ? apps.find(i => i.name === app)
                                : apps[+app];
 
-      await bot.pocket.save('NewrelicApp', target);
+      await bot.pocket.save('newrelicapp', target);
 
       message.reply(`Enabled *${target.name}*.`)
     }, { permissions: ['admin', 'server'] });
@@ -97,7 +97,7 @@ export default bot => {
       let target = isNaN(+app) ? apps.find(i => i.name === app)
                                : apps[+app];
 
-      await bot.pocket.remove('NewrelicApp', { id: target.id });
+      await bot.pocket.remove('newrelicapp', { id: target.id });
 
       message.reply(`Enabled *${target.name}*.`)
     }, { permissions: ['admin', 'server'] })

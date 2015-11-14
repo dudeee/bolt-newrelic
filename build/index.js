@@ -259,7 +259,7 @@ exports['default'] = function (bot) {
                     return i.name === app;
                   }) : apps[+app];
                   context$3$0.next = 8;
-                  return regeneratorRuntime.awrap(bot.pocket.save('NewrelicApp', target));
+                  return regeneratorRuntime.awrap(bot.pocket.save('newrelicapp', target));
 
                 case 8:
 
@@ -289,7 +289,7 @@ exports['default'] = function (bot) {
                     return i.name === app;
                   }) : apps[+app];
                   context$3$0.next = 8;
-                  return regeneratorRuntime.awrap(bot.pocket.remove('NewrelicApp', { id: target.id }));
+                  return regeneratorRuntime.awrap(bot.pocket.remove('newrelicapp', { id: target.id }));
 
                 case 8:
 
