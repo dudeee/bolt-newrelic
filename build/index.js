@@ -25,7 +25,7 @@ exports['default'] = function (bot) {
 
   var model = bot.pocket.model('newrelicapp', {
     name: String,
-    id: String,
+    id: Number,
     enabled: Boolean
   });
 
@@ -38,10 +38,10 @@ exports['default'] = function (bot) {
       while (1) switch (context$2$0.prev = context$2$0.next) {
         case 0:
           context$2$0.next = 2;
-          return regeneratorRuntime.awrap(model.findOne({ id: app.id }).enabled);
+          return regeneratorRuntime.awrap(model.findOne({ id: app.id }));
 
         case 2:
-          return context$2$0.abrupt('return', context$2$0.sent);
+          return context$2$0.abrupt('return', context$2$0.sent.enabled);
 
         case 3:
         case 'end':
@@ -222,7 +222,7 @@ exports['default'] = function (bot) {
                     return i.name === app;
                   }) : apps[+app];
                   context$3$0.next = 8;
-                  return regeneratorRuntime.awrap(model.findOne('newrelicapp', { id: target.id }));
+                  return regeneratorRuntime.awrap(model.findOne({ id: target.id }));
 
                 case 8:
                   m = context$3$0.sent;
@@ -259,7 +259,7 @@ exports['default'] = function (bot) {
                     return i.name === app;
                   }) : apps[+app];
                   context$3$0.next = 8;
-                  return regeneratorRuntime.awrap(model.findOne('newrelicapp', { id: target.id }));
+                  return regeneratorRuntime.awrap(model.findOne({ id: target.id }));
 
                 case 8:
                   m = context$3$0.sent;
@@ -270,7 +270,7 @@ exports['default'] = function (bot) {
 
                 case 12:
 
-                  message.reply('Disabled *' + target.name + '*.');
+                  message.reply('Disabled *' + m.name + '*.');
 
                 case 13:
                 case 'end':

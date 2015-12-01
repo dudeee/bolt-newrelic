@@ -11,14 +11,14 @@ export default bot => {
 
   let model = bot.pocket.model('newrelicapp', {
     name: String,
-    id: String,
+    id: Number,
     enabled: Boolean
   });
 
   let { threshold, target } = bot.data.newrelic;
 
   const isEnabled = async function(app) {
-    return await model.findOne({ id: app.id }).enabled;
+    return (await model.findOne({ id: app.id })).enabled;
   }
 
   const process = async function(job) {
@@ -83,7 +83,7 @@ export default bot => {
       let target = isNaN(+app) ? apps.find(i => i.name === app)
                                : apps[+app];
 
-      let m = await model.findOne('newrelicapp', {id: target.id});
+      let m = await model.findOne({id: target.id});
       m.enabled = true;
       await m.save();
 
@@ -98,11 +98,11 @@ export default bot => {
       let target = isNaN(+app) ? apps.find(i => i.name === app)
                                : apps[+app];
 
-      let m = await model.findOne('newrelicapp', {id: target.id});
+      let m = await model.findOne({id: target.id});
       m.enabled = false;
       await m.save();
 
-      message.reply(`Disabled *${target.name}*.`)
+      message.reply(`Disabled *${m.name}*.`)
     }, { permissions: ['admin', 'server'] })
   })
 
