@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _this3 = this;
+var _this2 = this;
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
@@ -25,7 +25,8 @@ exports['default'] = function (bot) {
 
   var model = bot.pocket.model('newrelicapp', {
     name: String,
-    id: String
+    id: String,
+    enabled: Boolean
   });
 
   var _bot$data$newrelic = bot.data.newrelic;
@@ -37,10 +38,10 @@ exports['default'] = function (bot) {
       while (1) switch (context$2$0.prev = context$2$0.next) {
         case 0:
           context$2$0.next = 2;
-          return regeneratorRuntime.awrap(model.findOne({ id: app.id }));
+          return regeneratorRuntime.awrap(model.findOne({ id: app.id }).enabled);
 
         case 2:
-          return context$2$0.abrupt('return', !!context$2$0.sent);
+          return context$2$0.abrupt('return', context$2$0.sent);
 
         case 3:
         case 'end':
@@ -106,10 +107,10 @@ exports['default'] = function (bot) {
   bot.agenda.define('monitor-newrelic', process);
 
   bot.agenda.on('ready', function callee$1$0() {
-    var apps, names, enabled, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, app;
+    var apps, names, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, app;
 
     return regeneratorRuntime.async(function callee$1$0$(context$2$0) {
-      var _this2 = this;
+      var _this = this;
 
       while (1) switch (context$2$0.prev = context$2$0.next) {
         case 0:
@@ -125,26 +126,20 @@ exports['default'] = function (bot) {
           bot.log.verbose('[newrelic] fetched applications', names);
 
           context$2$0.next = 7;
-          return regeneratorRuntime.awrap(model.find().exec());
+          return regeneratorRuntime.awrap(model.find().remove());
 
         case 7:
-          enabled = context$2$0.sent;
-
-          if (enabled.length) {
-            context$2$0.next = 11;
-            break;
-          }
-
-          context$2$0.next = 11;
+          context$2$0.next = 9;
           return regeneratorRuntime.awrap(Promise.all(apps.map(function (app) {
-            return bot.pocket.save('NewrelicApp', app);
+            app.enabled = true;
+            return bot.pocket.save('newrelicapp', app);
           })));
 
-        case 11:
+        case 9:
           _iteratorNormalCompletion = true;
           _didIteratorError = false;
           _iteratorError = undefined;
-          context$2$0.prev = 14;
+          context$2$0.prev = 12;
 
           for (_iterator = apps[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             app = _step.value;
@@ -152,98 +147,66 @@ exports['default'] = function (bot) {
             bot.agenda.every('15 minutes', 'monitor-newrelic', { app: app });
           }
 
-          context$2$0.next = 22;
+          context$2$0.next = 20;
           break;
 
-        case 18:
-          context$2$0.prev = 18;
-          context$2$0.t0 = context$2$0['catch'](14);
+        case 16:
+          context$2$0.prev = 16;
+          context$2$0.t0 = context$2$0['catch'](12);
           _didIteratorError = true;
           _iteratorError = context$2$0.t0;
 
-        case 22:
-          context$2$0.prev = 22;
-          context$2$0.prev = 23;
+        case 20:
+          context$2$0.prev = 20;
+          context$2$0.prev = 21;
 
           if (!_iteratorNormalCompletion && _iterator['return']) {
             _iterator['return']();
           }
 
-        case 25:
-          context$2$0.prev = 25;
+        case 23:
+          context$2$0.prev = 23;
 
           if (!_didIteratorError) {
-            context$2$0.next = 28;
+            context$2$0.next = 26;
             break;
           }
 
           throw _iteratorError;
 
+        case 26:
+          return context$2$0.finish(23);
+
+        case 27:
+          return context$2$0.finish(20);
+
         case 28:
-          return context$2$0.finish(25);
-
-        case 29:
-          return context$2$0.finish(22);
-
-        case 30:
           bot.listen(/newrelic list/i, function callee$2$0(message) {
             var apps, response;
             return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
-              var _this = this;
-
               while (1) switch (context$3$0.prev = context$3$0.next) {
                 case 0:
                   context$3$0.next = 2;
-                  return regeneratorRuntime.awrap(client.apps());
+                  return regeneratorRuntime.awrap(model.find('newrelicapp').exec());
 
                 case 2:
                   apps = context$3$0.sent;
-                  context$3$0.next = 5;
-                  return regeneratorRuntime.awrap(Promise.all(apps.map(function callee$3$0(app, index) {
-                    var status;
-                    return regeneratorRuntime.async(function callee$3$0$(context$4$0) {
-                      while (1) switch (context$4$0.prev = context$4$0.next) {
-                        case 0:
-                          context$4$0.next = 2;
-                          return regeneratorRuntime.awrap(isEnabled(app));
+                  response = apps.map(function (app, index) {
+                    var status = app.enabled ? 'Enabled' : 'Disabled';
 
-                        case 2:
-                          if (!context$4$0.sent) {
-                            context$4$0.next = 6;
-                            break;
-                          }
-
-                          context$4$0.t0 = 'Enabled';
-                          context$4$0.next = 7;
-                          break;
-
-                        case 6:
-                          context$4$0.t0 = 'Disabled';
-
-                        case 7:
-                          status = context$4$0.t0;
-                          return context$4$0.abrupt('return', index + '. ' + app.name + ' – ' + status);
-
-                        case 9:
-                        case 'end':
-                          return context$4$0.stop();
-                      }
-                    }, null, _this);
-                  })));
-
-                case 5:
-                  response = context$3$0.sent;
+                    return index + '. ' + app.name + ' – ' + status;
+                  });
                   return context$3$0.abrupt('return', message.reply(response.join('\n')));
 
-                case 7:
+                case 5:
                 case 'end':
                   return context$3$0.stop();
               }
-            }, null, _this2);
+            }, null, _this);
           }, { permissions: ['admin', 'server'] });
 
           bot.listen(/newrelic enable (.*)/i, function callee$2$0(message) {
-            var _message$match, app, apps, target;
+            var _message$match, app, apps, target, m;
 
             return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
               while (1) switch (context$3$0.prev = context$3$0.next) {
@@ -259,21 +222,28 @@ exports['default'] = function (bot) {
                     return i.name === app;
                   }) : apps[+app];
                   context$3$0.next = 8;
-                  return regeneratorRuntime.awrap(bot.pocket.save('newrelicapp', target));
+                  return regeneratorRuntime.awrap(model.findOne('newrelicapp', { id: target.id }));
 
                 case 8:
+                  m = context$3$0.sent;
+
+                  m.enabled = true;
+                  context$3$0.next = 12;
+                  return regeneratorRuntime.awrap(m.save());
+
+                case 12:
 
                   message.reply('Enabled *' + target.name + '*.');
 
-                case 9:
+                case 13:
                 case 'end':
                   return context$3$0.stop();
               }
-            }, null, _this2);
+            }, null, _this);
           }, { permissions: ['admin', 'server'] });
 
           bot.listen(/newrelic disable (.*)/i, function callee$2$0(message) {
-            var _message$match2, app, apps, target;
+            var _message$match2, app, apps, target, m;
 
             return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
               while (1) switch (context$3$0.prev = context$3$0.next) {
@@ -289,24 +259,31 @@ exports['default'] = function (bot) {
                     return i.name === app;
                   }) : apps[+app];
                   context$3$0.next = 8;
-                  return regeneratorRuntime.awrap(bot.pocket.remove('newrelicapp', { id: target.id }));
+                  return regeneratorRuntime.awrap(model.findOne('newrelicapp', { id: target.id }));
 
                 case 8:
+                  m = context$3$0.sent;
+
+                  m.enabled = false;
+                  context$3$0.next = 12;
+                  return regeneratorRuntime.awrap(m.save());
+
+                case 12:
 
                   message.reply('Disabled *' + target.name + '*.');
 
-                case 9:
+                case 13:
                 case 'end':
                   return context$3$0.stop();
               }
-            }, null, _this2);
+            }, null, _this);
           }, { permissions: ['admin', 'server'] });
 
-        case 33:
+        case 31:
         case 'end':
           return context$2$0.stop();
       }
-    }, null, _this3, [[14, 18, 22, 30], [23,, 25, 29]]);
+    }, null, _this2, [[12, 16, 20, 28], [21,, 23, 27]]);
   });
 
   bot.help('newrelic', 'manage newrelic alerts', '\nlist — show a list of newrelic applications\n\nenable <appname> — enable application monitoring\n\ndisable <appname> — disable application monitoring');

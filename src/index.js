@@ -11,13 +11,14 @@ export default bot => {
 
   let model = bot.pocket.model('newrelicapp', {
     name: String,
-    id: String
+    id: String,
+    enabled: Boolean
   });
 
   let { threshold, target } = bot.data.newrelic;
 
   const isEnabled = async function(app) {
-    return !!(await model.findOne({ id: app.id }));
+    return await model.findOne({ id: app.id }).enabled;
   }
 
   const process = async function(job) {
@@ -53,25 +54,23 @@ export default bot => {
     let names = apps.map(app => app.name);
     bot.log.verbose('[newrelic] fetched applications', names);
 
-    let enabled = await model.find().exec();
-    if (!enabled.length) {
-      await Promise.all(apps.map(app => {
-        return bot.pocket.save('NewrelicApp', app);
-      }));
-    }
+    await model.find().remove();
+    await* apps.map(app => {
+      app.enabled = true;
+      return bot.pocket.save('newrelicapp', app);
+    });
 
     for (let app of apps) {
       bot.agenda.every('15 minutes', 'monitor-newrelic', { app });
     }
 
     bot.listen(/newrelic list/i, async (message) => {
-      let apps = await client.apps();
-
-      const response = await Promise.all(apps.map(async (app, index) => {
-        let status = await isEnabled(app) ? 'Enabled' : 'Disabled';
+      const apps = await model.find('newrelicapp').exec();
+      let response = apps.map((app, index) => {
+        let status = app.enabled ? 'Enabled' : 'Disabled';
 
         return `${index}. ${app.name} – ${status}`;
-      }));
+      });
 
       return message.reply(response.join('\n'));
     }, { permissions: ['admin', 'server'] });
@@ -84,7 +83,9 @@ export default bot => {
       let target = isNaN(+app) ? apps.find(i => i.name === app)
                                : apps[+app];
 
-      await bot.pocket.save('newrelicapp', target);
+      let m = await model.findOne('newrelicapp', {id: target.id});
+      m.enabled = true;
+      await m.save();
 
       message.reply(`Enabled *${target.name}*.`)
     }, { permissions: ['admin', 'server'] });
@@ -97,7 +98,9 @@ export default bot => {
       let target = isNaN(+app) ? apps.find(i => i.name === app)
                                : apps[+app];
 
-      await bot.pocket.remove('newrelicapp', { id: target.id });
+      let m = await model.findOne('newrelicapp', {id: target.id});
+      m.enabled = false;
+      await m.save();
 
       message.reply(`Disabled *${target.name}*.`)
     }, { permissions: ['admin', 'server'] })
