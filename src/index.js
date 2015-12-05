@@ -15,7 +15,7 @@ export default bot => {
     enabled: Boolean
   });
 
-  let { threshold, target } = bot.data.newrelic;
+  let { threshold, target, spike } = bot.data.newrelic;
 
   const isEnabled = async function(app) {
     return (await model.findOne({ id: app.id })).enabled;
@@ -28,20 +28,76 @@ export default bot => {
     let enable = await isEnabled(app);
     if (!enable) return false;
 
-    let { average: apdex } = await client.apdex({
+    let { apdex, enduser } = await client.apdex({
       app: app.id
     });
 
-    if (compare(threshold.apdex, apdex)) {
-      bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
-      score is ${apdex}`);
+    let avgApdex = 0;
+
+    for (let i = 0; i < apdex.timeslices.length; i++) {
+      let aslice = apdex.timeslices[i];
+      let eslice = enduser.timeslices[i];
+
+      avgApdex = (avgApdex + client.averageApdex(aslice, eslice)) / 2;
     }
 
-    let error = await client.error({
+    bot.log.verbose(`[newrelic] average apdex score ${avgApdex}`)
+    bot.log.verbose(`[newrelic] apdex score spike ${spike.apdex}`);
+
+    for (let i = 0; i < apdex.timeslices.length; i++) {
+      let aslice = apdex.timeslices[i];
+      let eslice = enduser.timeslices[i];
+
+      let current = client.averageApdex(aslice, eslice);
+
+      if (compare(spike.apdex, current - avgApdex)) {
+        bot.sendMessage(target, `Newrelic Application *${app.name}*
+        is experiencing an apdex score spike!`);
+      }
+    }
+
+
+    bot.log.verbose(`[newrelic] apdex score threshold ${threshold.apdex}`);
+
+    if (compare(threshold.apdex, avgApdex)) {
+      bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
+      score is ${apdex}!`);
+    }
+
+
+    let { errors, otherTransaction, httpDispatcher } = await client.error({
       app: app.id
     });
 
-    if (compare(threshold.error, error)) {
+    let avgError = 0;
+
+    for (let i = 0; i < errors.timeslices.length; i++) {
+      let eslice = errors.timeslices[i];
+      let oslice = otherTransaction.timeslices[i];
+      let hslice = httpDispatcher.timeslices[i];
+
+      avgError = (avgError + client.averageError(eslice, oslice, hslice)) / 2;
+    }
+
+    bot.log.verbose(`[newrelic] average error rate is ${avgError}`)
+    bot.log.verbose(`[newrelic] error rate spike ${spike.error}`);
+
+    for (let i = 0; i < errors.timeslices.length; i++) {
+      let eslice = errors.timeslices[i];
+      let oslice = otherTransaction.timeslices[i];
+      let hslice = httpDispatcher.timeslices[i];
+
+      let current = client.averageError(eslice, oslice, hslice);
+
+      if (compare(spike.error, current - avgError)) {
+        bot.sendMessage(target, `Newrelic Application *${app.name}* is
+        experiencing an errot rate spike!`)
+      }
+    }
+
+    bot.log.verbose(`[newrelic] error rate threshold ${threshold.error}`);
+
+    if (compare(threshold.error, avgError)) {
       bot.sendMessage(target, `Newrelic Application *${app.name}*'s error rate
       is ${error}!`);
     }
@@ -61,6 +117,7 @@ export default bot => {
     });
 
     for (let app of apps) {
+      process({ attrs: { data: { app } }})
       bot.agenda.every('15 minutes', 'monitor-newrelic', { app });
     }
 

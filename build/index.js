@@ -32,6 +32,7 @@ exports['default'] = function (bot) {
   var _bot$data$newrelic = bot.data.newrelic;
   var threshold = _bot$data$newrelic.threshold;
   var target = _bot$data$newrelic.target;
+  var spike = _bot$data$newrelic.spike;
 
   var isEnabled = function isEnabled(app) {
     return regeneratorRuntime.async(function isEnabled$(context$2$0) {
@@ -51,7 +52,7 @@ exports['default'] = function (bot) {
   };
 
   var process = function process(job) {
-    var data, app, enable, _ref, apdex, error;
+    var data, app, enable, _ref, apdex, enduser, avgApdex, i, aslice, eslice, current, _ref2, errors, otherTransaction, httpDispatcher, avgError, oslice, hslice;
 
     return regeneratorRuntime.async(function process$(context$2$0) {
       while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -79,25 +80,77 @@ exports['default'] = function (bot) {
 
         case 9:
           _ref = context$2$0.sent;
-          apdex = _ref.average;
+          apdex = _ref.apdex;
+          enduser = _ref.enduser;
+          avgApdex = 0;
 
-          if (compare(threshold.apdex, apdex)) {
-            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n      score is ' + apdex);
+          for (i = 0; i < apdex.timeslices.length; i++) {
+            aslice = apdex.timeslices[i];
+            eslice = enduser.timeslices[i];
+
+            avgApdex = (avgApdex + client.averageApdex(aslice, eslice)) / 2;
           }
 
-          context$2$0.next = 14;
+          bot.log.verbose('[newrelic] average apdex score ' + avgApdex);
+          bot.log.verbose('[newrelic] apdex score spike ' + spike.apdex);
+
+          for (i = 0; i < apdex.timeslices.length; i++) {
+            aslice = apdex.timeslices[i];
+            eslice = enduser.timeslices[i];
+            current = client.averageApdex(aslice, eslice);
+
+            if (compare(spike.apdex, current - avgApdex)) {
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\n        is experiencing an apdex score spike!');
+            }
+          }
+
+          bot.log.verbose('[newrelic] apdex score threshold ' + threshold.apdex);
+
+          if (compare(threshold.apdex, avgApdex)) {
+            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n      score is ' + apdex + '!');
+          }
+
+          context$2$0.next = 21;
           return regeneratorRuntime.awrap(client.error({
             app: app.id
           }));
 
-        case 14:
-          error = context$2$0.sent;
+        case 21:
+          _ref2 = context$2$0.sent;
+          errors = _ref2.errors;
+          otherTransaction = _ref2.otherTransaction;
+          httpDispatcher = _ref2.httpDispatcher;
+          avgError = 0;
 
-          if (compare(threshold.error, error)) {
+          for (i = 0; i < errors.timeslices.length; i++) {
+            eslice = errors.timeslices[i];
+            oslice = otherTransaction.timeslices[i];
+            hslice = httpDispatcher.timeslices[i];
+
+            avgError = (avgError + client.averageError(eslice, oslice, hslice)) / 2;
+          }
+
+          bot.log.verbose('[newrelic] average error rate is ' + avgError);
+          bot.log.verbose('[newrelic] error rate spike ' + spike.error);
+
+          for (i = 0; i < errors.timeslices.length; i++) {
+            eslice = errors.timeslices[i];
+            oslice = otherTransaction.timeslices[i];
+            hslice = httpDispatcher.timeslices[i];
+            current = client.averageError(eslice, oslice, hslice);
+
+            if (compare(spike.error, current - avgError)) {
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n        experiencing an errot rate spike!');
+            }
+          }
+
+          bot.log.verbose('[newrelic] error rate threshold ' + threshold.error);
+
+          if (compare(threshold.error, avgError)) {
             bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n      is ' + error + '!');
           }
 
-        case 16:
+        case 32:
         case 'end':
           return context$2$0.stop();
       }
@@ -144,6 +197,7 @@ exports['default'] = function (bot) {
           for (_iterator = apps[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             app = _step.value;
 
+            process({ attrs: { data: { app: app } } });
             bot.agenda.every('15 minutes', 'monitor-newrelic', { app: app });
           }
 
