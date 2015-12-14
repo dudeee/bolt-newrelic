@@ -93,21 +93,21 @@ exports['default'] = function (bot) {
 
           avgApdex = avgApdex / apdex.timeslices.length;
 
-          bot.log.verbose('[newrelic] average apdex score ' + avgApdex);
+          bot.log.verbose('[newrelic] [' + app.name + '] average apdex score ' + avgApdex);
 
           for (i = 0; i < apdex.timeslices.length; i++) {
             aslice = apdex.timeslices[i];
             eslice = enduser.timeslices[i];
             current = client.averageApdex(aslice, eslice);
 
-            bot.log.verbose('[newrelic] apdex score spike ' + (current - avgApdex));
+            bot.log.verbose('[newrelic] [' + app.name + '] apdex score spike ' + (current - avgApdex));
             if (compare(spike.apdex, current - avgApdex)) {
               bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\n        is experiencing an apdex score spike!');
             }
           }
 
-          bot.log.verbose('[newrelic] apdex score spike threshold ' + spike.apdex);
-          bot.log.verbose('[newrelic] apdex score threshold ' + threshold.apdex);
+          bot.log.verbose('[newrelic] [' + app.name + '] apdex score spike threshold ' + spike.apdex);
+          bot.log.verbose('[newrelic] [' + app.name + '] apdex score threshold ' + threshold.apdex);
 
           if (compare(threshold.apdex, avgApdex)) {
             bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n      score is ' + apdex + '!');
@@ -135,7 +135,7 @@ exports['default'] = function (bot) {
 
           avgError = avgError / errors.timeslices.length;
 
-          bot.log.verbose('[newrelic] average error rate is ' + avgError);
+          bot.log.verbose('[newrelic] [' + app.name + '] average error rate is ' + avgError);
 
           for (i = 0; i < errors.timeslices.length; i++) {
             eslice = errors.timeslices[i];
@@ -143,14 +143,14 @@ exports['default'] = function (bot) {
             hslice = httpDispatcher.timeslices[i];
             current = client.averageError(eslice, oslice, hslice);
 
-            bot.log.verbose('[newrelic] error rate spike ' + (current - avgError));
+            bot.log.verbose('[newrelic] [' + app.name + '] error rate spike ' + (current - avgError));
             if (compare(spike.error, current - avgError)) {
               bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n        experiencing an errot rate spike!');
             }
           }
 
-          bot.log.verbose('[newrelic] error rate threshold ' + threshold.error);
-          bot.log.verbose('[newrelic] error rate spike threshold ' + spike.error);
+          bot.log.verbose('[newrelic] [' + app.name + '] error rate threshold ' + threshold.error);
+          bot.log.verbose('[newrelic] [' + app.name + '] error rate spike threshold ' + spike.error);
 
           if (compare(threshold.error, avgError)) {
             bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n      is ' + error + '!');
