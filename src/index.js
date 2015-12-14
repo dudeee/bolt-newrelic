@@ -38,11 +38,12 @@ export default bot => {
       let aslice = apdex.timeslices[i];
       let eslice = enduser.timeslices[i];
 
-      avgApdex = (avgApdex + client.averageApdex(aslice, eslice)) / 2;
+      avgApdex += client.averageApdex(aslice, eslice);
     }
 
+    avgApdex = avgApdex / apdex.timeslices.length;
+
     bot.log.verbose(`[newrelic] average apdex score ${avgApdex}`)
-    bot.log.verbose(`[newrelic] apdex score spike ${spike.apdex}`);
 
     for (let i = 0; i < apdex.timeslices.length; i++) {
       let aslice = apdex.timeslices[i];
@@ -50,6 +51,7 @@ export default bot => {
 
       let current = client.averageApdex(aslice, eslice);
 
+      bot.log.verbose(`[newrelic] error rate spike ${current - avgApdex}`);
       if (compare(spike.apdex, current - avgApdex)) {
         bot.sendMessage(target, `Newrelic Application *${app.name}*
         is experiencing an apdex score spike!`);
@@ -57,6 +59,7 @@ export default bot => {
     }
 
 
+    bot.log.verbose(`[newrelic] apdex score spike threshold ${spike.apdex}`);
     bot.log.verbose(`[newrelic] apdex score threshold ${threshold.apdex}`);
 
     if (compare(threshold.apdex, avgApdex)) {
@@ -76,11 +79,12 @@ export default bot => {
       let oslice = otherTransaction.timeslices[i];
       let hslice = httpDispatcher.timeslices[i];
 
-      avgError = (avgError + client.averageError(eslice, oslice, hslice)) / 2;
+      avgError += client.averageError(eslice, oslice, hslice);
     }
 
+    avgError = avgError / errors.timeslices.length;
+
     bot.log.verbose(`[newrelic] average error rate is ${avgError}`)
-    bot.log.verbose(`[newrelic] error rate spike ${spike.error}`);
 
     for (let i = 0; i < errors.timeslices.length; i++) {
       let eslice = errors.timeslices[i];
@@ -89,6 +93,7 @@ export default bot => {
 
       let current = client.averageError(eslice, oslice, hslice);
 
+      bot.log.verbose(`[newrelic] error rate spike ${current - avgError}`);
       if (compare(spike.error, current - avgError)) {
         bot.sendMessage(target, `Newrelic Application *${app.name}* is
         experiencing an errot rate spike!`)
@@ -96,6 +101,7 @@ export default bot => {
     }
 
     bot.log.verbose(`[newrelic] error rate threshold ${threshold.error}`);
+    bot.log.verbose(`[newrelic] error rate spike threshold ${spike.error}`);
 
     if (compare(threshold.error, avgError)) {
       bot.sendMessage(target, `Newrelic Application *${app.name}*'s error rate
