@@ -51,7 +51,7 @@ export default bot => {
 
       let current = client.averageApdex(aslice, eslice);
 
-      bot.log.verbose(`[newrelic] error rate spike ${current - avgApdex}`);
+      bot.log.verbose(`[newrelic] apdex score spike ${current - avgApdex}`);
       if (compare(spike.apdex, current - avgApdex)) {
         bot.sendMessage(target, `Newrelic Application *${app.name}*
         is experiencing an apdex score spike!`);
