@@ -78,7 +78,7 @@ exports['default'] = function (bot) {
         case 11:
           enable = context$2$0.sent;
 
-          bot.log.verbose('[newrelic] [' + app.name + '] is ' + (enable ? 'Enabled' : 'Disabled'));
+          bot.log.verbose('[newrelic] [' + app.name + '] id: ' + app.id + ', status: ' + (enable ? 'enabled' : 'disabled'));
 
           if (enable) {
             context$2$0.next = 15;
