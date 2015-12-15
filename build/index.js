@@ -52,33 +52,46 @@ exports['default'] = function (bot) {
   };
 
   var process = function process(job) {
-    var data, app, enable, _ref, apdex, enduser, avgApdex, i, aslice, eslice, current, _ref2, errors, otherTransaction, httpDispatcher, avgError, oslice, hslice;
+    var data, apps, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, app, enable, _ref, apdex, enduser, avgApdex, i, aslice, eslice, current, _ref2, errors, otherTransaction, httpDispatcher, avgError, oslice, hslice;
 
     return regeneratorRuntime.async(function process$(context$2$0) {
       while (1) switch (context$2$0.prev = context$2$0.next) {
         case 0:
           data = job.attrs.data;
-          app = data.app;
-          context$2$0.next = 4;
+          apps = data.apps;
+          _iteratorNormalCompletion = true;
+          _didIteratorError = false;
+          _iteratorError = undefined;
+          context$2$0.prev = 5;
+          _iterator = apps[Symbol.iterator]();
+
+        case 7:
+          if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+            context$2$0.next = 44;
+            break;
+          }
+
+          app = _step.value;
+          context$2$0.next = 11;
           return regeneratorRuntime.awrap(isEnabled(app));
 
-        case 4:
+        case 11:
           enable = context$2$0.sent;
 
           if (enable) {
-            context$2$0.next = 7;
+            context$2$0.next = 14;
             break;
           }
 
           return context$2$0.abrupt('return', false);
 
-        case 7:
-          context$2$0.next = 9;
+        case 14:
+          context$2$0.next = 16;
           return regeneratorRuntime.awrap(client.apdex({
             app: app.id
           }));
 
-        case 9:
+        case 16:
           _ref = context$2$0.sent;
           apdex = _ref.apdex;
           enduser = _ref.enduser;
@@ -102,7 +115,7 @@ exports['default'] = function (bot) {
 
             bot.log.verbose('[newrelic] [' + app.name + '] apdex score spike ' + (current - avgApdex));
             if (compare(spike.apdex, current - avgApdex)) {
-              bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\n        is experiencing an apdex score spike!');
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\n          is experiencing an apdex score spike!');
             }
           }
 
@@ -110,15 +123,15 @@ exports['default'] = function (bot) {
           bot.log.verbose('[newrelic] [' + app.name + '] apdex score threshold ' + threshold.apdex);
 
           if (compare(threshold.apdex, avgApdex)) {
-            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n      score is ' + apdex + '!');
+            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n        score is ' + apdex + '!');
           }
 
-          context$2$0.next = 22;
+          context$2$0.next = 29;
           return regeneratorRuntime.awrap(client.error({
             app: app.id
           }));
 
-        case 22:
+        case 29:
           _ref2 = context$2$0.sent;
           errors = _ref2.errors;
           otherTransaction = _ref2.otherTransaction;
@@ -145,7 +158,7 @@ exports['default'] = function (bot) {
 
             bot.log.verbose('[newrelic] [' + app.name + '] error rate spike ' + (current - avgError));
             if (compare(spike.error, current - avgError)) {
-              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n        experiencing an errot rate spike!');
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n          experiencing an errot rate spike!');
             }
           }
 
@@ -153,21 +166,59 @@ exports['default'] = function (bot) {
           bot.log.verbose('[newrelic] [' + app.name + '] error rate spike threshold ' + spike.error);
 
           if (compare(threshold.error, avgError)) {
-            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n      is ' + error + '!');
+            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n        is ' + error + '!');
           }
 
-        case 34:
+        case 41:
+          _iteratorNormalCompletion = true;
+          context$2$0.next = 7;
+          break;
+
+        case 44:
+          context$2$0.next = 50;
+          break;
+
+        case 46:
+          context$2$0.prev = 46;
+          context$2$0.t0 = context$2$0['catch'](5);
+          _didIteratorError = true;
+          _iteratorError = context$2$0.t0;
+
+        case 50:
+          context$2$0.prev = 50;
+          context$2$0.prev = 51;
+
+          if (!_iteratorNormalCompletion && _iterator['return']) {
+            _iterator['return']();
+          }
+
+        case 53:
+          context$2$0.prev = 53;
+
+          if (!_didIteratorError) {
+            context$2$0.next = 56;
+            break;
+          }
+
+          throw _iteratorError;
+
+        case 56:
+          return context$2$0.finish(53);
+
+        case 57:
+          return context$2$0.finish(50);
+
+        case 58:
         case 'end':
           return context$2$0.stop();
       }
-    }, null, this);
+    }, null, this, [[5, 46, 50, 58], [51,, 53, 57]]);
   };
 
   bot.agenda.define('monitor-newrelic', process);
 
   bot.agenda.on('ready', function callee$1$0() {
-    var apps, names, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, app;
-
+    var apps, names;
     return regeneratorRuntime.async(function callee$1$0$(context$2$0) {
       var _this = this;
 
@@ -195,52 +246,10 @@ exports['default'] = function (bot) {
           })));
 
         case 9:
-          _iteratorNormalCompletion = true;
-          _didIteratorError = false;
-          _iteratorError = undefined;
-          context$2$0.prev = 12;
 
-          for (_iterator = apps[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            app = _step.value;
+          process({ attrs: { data: { apps: apps } } });
+          bot.agenda.every('15 minutes', 'monitor-newrelic', { apps: apps });
 
-            process({ attrs: { data: { app: app } } });
-            bot.agenda.every('15 minutes', 'monitor-newrelic', { app: app });
-          }
-
-          context$2$0.next = 20;
-          break;
-
-        case 16:
-          context$2$0.prev = 16;
-          context$2$0.t0 = context$2$0['catch'](12);
-          _didIteratorError = true;
-          _iteratorError = context$2$0.t0;
-
-        case 20:
-          context$2$0.prev = 20;
-          context$2$0.prev = 21;
-
-          if (!_iteratorNormalCompletion && _iterator['return']) {
-            _iterator['return']();
-          }
-
-        case 23:
-          context$2$0.prev = 23;
-
-          if (!_didIteratorError) {
-            context$2$0.next = 26;
-            break;
-          }
-
-          throw _iteratorError;
-
-        case 26:
-          return context$2$0.finish(23);
-
-        case 27:
-          return context$2$0.finish(20);
-
-        case 28:
           bot.listen(/newrelic list/i, function callee$2$0(message) {
             var apps, response;
             return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
@@ -339,11 +348,11 @@ exports['default'] = function (bot) {
             }, null, _this);
           }, { permissions: ['admin', 'server'] });
 
-        case 31:
+        case 14:
         case 'end':
           return context$2$0.stop();
       }
-    }, null, _this2, [[12, 16, 20, 28], [21,, 23, 27]]);
+    }, null, _this2);
   });
 
   bot.help('newrelic', 'manage newrelic alerts', '\nlist — show a list of newrelic applications\n\nenable <appname> — enable application monitoring\n\ndisable <appname> — disable application monitoring');
