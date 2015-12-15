@@ -178,7 +178,7 @@ exports['default'] = function (bot) {
           context$2$0.prev = 45;
           context$2$0.t0 = context$2$0['catch'](9);
 
-          bot.log.info('[newrelic] [' + app.name + '] response error: ' + context$2$0.t0.title);
+          bot.log.info('[newrelic] [' + app.name + '] response error:', context$2$0.t0);
 
         case 48:
           _iteratorNormalCompletion = true;

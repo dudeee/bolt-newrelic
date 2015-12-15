@@ -111,7 +111,7 @@ export default bot => {
           is ${error}!`);
         }
       } catch(e) {
-        bot.log.info(`[newrelic] [${app.name}] response error: ${e.title}`);
+        bot.log.info(`[newrelic] [${app.name}] response error:`, e);
       }
     }
   };
