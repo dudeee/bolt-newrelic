@@ -26,88 +26,92 @@ export default bot => {
     let { apps } = data;
 
     for (let app of apps) {
-      let enable = await isEnabled(app);
-      bot.log.verbose(`[newrelic] [${app.name}] id: ${app.id}, status: ${enable ? 'enabled' : 'disabled'}`);
-      if (!enable) return false;
+      try {
+        let enable = await isEnabled(app);
+        bot.log.verbose(`[newrelic] [${app.name}] id: ${app.id}, status: ${enable ? 'enabled' : 'disabled'}`);
+        if (!enable) return false;
 
-      let { apdex, enduser } = await client.apdex({
-        app: app.id
-      });
+        let { apdex, enduser } = await client.apdex({
+          app: app.id
+        });
 
-      let avgApdex = 0;
+        let avgApdex = 0;
 
-      for (let i = 0; i < apdex.timeslices.length; i++) {
-        let aslice = apdex.timeslices[i];
-        let eslice = enduser.timeslices[i];
+        for (let i = 0; i < apdex.timeslices.length; i++) {
+          let aslice = apdex.timeslices[i];
+          let eslice = enduser.timeslices[i];
 
-        avgApdex += client.averageApdex(aslice, eslice);
-      }
-
-      avgApdex = avgApdex / apdex.timeslices.length;
-
-      bot.log.verbose(`[newrelic] [${app.name}] average apdex score ${avgApdex}`)
-
-      for (let i = 0; i < apdex.timeslices.length; i++) {
-        let aslice = apdex.timeslices[i];
-        let eslice = enduser.timeslices[i];
-
-        let current = client.averageApdex(aslice, eslice);
-
-        bot.log.verbose(`[newrelic] [${app.name}] apdex score spike ${current - avgApdex}`);
-        if (compare(spike.apdex, current - avgApdex)) {
-          bot.sendMessage(target, `Newrelic Application *${app.name}*
-          is experiencing an apdex score spike!`);
+          avgApdex += client.averageApdex(aslice, eslice);
         }
-      }
 
+        avgApdex = avgApdex / apdex.timeslices.length;
 
-      bot.log.verbose(`[newrelic] [${app.name}] apdex score spike threshold ${spike.apdex}`);
-      bot.log.verbose(`[newrelic] [${app.name}] apdex score threshold ${threshold.apdex}`);
+        bot.log.verbose(`[newrelic] [${app.name}] average apdex score ${avgApdex}`)
 
-      if (compare(threshold.apdex, avgApdex)) {
-        bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
-        score is ${apdex}!`);
-      }
+        for (let i = 0; i < apdex.timeslices.length; i++) {
+          let aslice = apdex.timeslices[i];
+          let eslice = enduser.timeslices[i];
 
+          let current = client.averageApdex(aslice, eslice);
 
-      let { errors, otherTransaction, httpDispatcher } = await client.error({
-        app: app.id
-      });
-
-      let avgError = 0;
-
-      for (let i = 0; i < errors.timeslices.length; i++) {
-        let eslice = errors.timeslices[i];
-        let oslice = otherTransaction.timeslices[i];
-        let hslice = httpDispatcher.timeslices[i];
-
-        avgError += client.averageError(eslice, oslice, hslice);
-      }
-
-      avgError = avgError / errors.timeslices.length;
-
-      bot.log.verbose(`[newrelic] [${app.name}] average error rate is ${avgError}`)
-
-      for (let i = 0; i < errors.timeslices.length; i++) {
-        let eslice = errors.timeslices[i];
-        let oslice = otherTransaction.timeslices[i];
-        let hslice = httpDispatcher.timeslices[i];
-
-        let current = client.averageError(eslice, oslice, hslice);
-
-        bot.log.verbose(`[newrelic] [${app.name}] error rate spike ${current - avgError}`);
-        if (compare(spike.error, current - avgError)) {
-          bot.sendMessage(target, `Newrelic Application *${app.name}* is
-          experiencing an errot rate spike!`)
+          bot.log.verbose(`[newrelic] [${app.name}] apdex score spike ${current - avgApdex}`);
+          if (compare(spike.apdex, current - avgApdex)) {
+            bot.sendMessage(target, `Newrelic Application *${app.name}*
+            is experiencing an apdex score spike!`);
+          }
         }
-      }
 
-      bot.log.verbose(`[newrelic] [${app.name}] error rate threshold ${threshold.error}`);
-      bot.log.verbose(`[newrelic] [${app.name}] error rate spike threshold ${spike.error}`);
 
-      if (compare(threshold.error, avgError)) {
-        bot.sendMessage(target, `Newrelic Application *${app.name}*'s error rate
-        is ${error}!`);
+        bot.log.verbose(`[newrelic] [${app.name}] apdex score spike threshold ${spike.apdex}`);
+        bot.log.verbose(`[newrelic] [${app.name}] apdex score threshold ${threshold.apdex}`);
+
+        if (compare(threshold.apdex, avgApdex)) {
+          bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
+          score is ${apdex}!`);
+        }
+
+
+        let { errors, otherTransaction, httpDispatcher } = await client.error({
+          app: app.id
+        });
+
+        let avgError = 0;
+
+        for (let i = 0; i < errors.timeslices.length; i++) {
+          let eslice = errors.timeslices[i];
+          let oslice = otherTransaction.timeslices[i];
+          let hslice = httpDispatcher.timeslices[i];
+
+          avgError += client.averageError(eslice, oslice, hslice);
+        }
+
+        avgError = avgError / errors.timeslices.length;
+
+        bot.log.verbose(`[newrelic] [${app.name}] average error rate is ${avgError}`)
+
+        for (let i = 0; i < errors.timeslices.length; i++) {
+          let eslice = errors.timeslices[i];
+          let oslice = otherTransaction.timeslices[i];
+          let hslice = httpDispatcher.timeslices[i];
+
+          let current = client.averageError(eslice, oslice, hslice);
+
+          bot.log.verbose(`[newrelic] [${app.name}] error rate spike ${current - avgError}`);
+          if (compare(spike.error, current - avgError)) {
+            bot.sendMessage(target, `Newrelic Application *${app.name}* is
+            experiencing an errot rate spike!`)
+          }
+        }
+
+        bot.log.verbose(`[newrelic] [${app.name}] error rate threshold ${threshold.error}`);
+        bot.log.verbose(`[newrelic] [${app.name}] error rate spike threshold ${spike.error}`);
+
+        if (compare(threshold.error, avgError)) {
+          bot.sendMessage(target, `Newrelic Application *${app.name}*'s error rate
+          is ${error}!`);
+        }
+      } catch(e) {
+        bot.log.info(`[newrelic] [${app.name}] response error: ${e.title}`);
       }
     }
   };

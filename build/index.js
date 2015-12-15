@@ -67,33 +67,34 @@ exports['default'] = function (bot) {
 
         case 7:
           if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-            context$2$0.next = 45;
+            context$2$0.next = 51;
             break;
           }
 
           app = _step.value;
-          context$2$0.next = 11;
+          context$2$0.prev = 9;
+          context$2$0.next = 12;
           return regeneratorRuntime.awrap(isEnabled(app));
 
-        case 11:
+        case 12:
           enable = context$2$0.sent;
 
           bot.log.verbose('[newrelic] [' + app.name + '] id: ' + app.id + ', status: ' + (enable ? 'enabled' : 'disabled'));
 
           if (enable) {
-            context$2$0.next = 15;
+            context$2$0.next = 16;
             break;
           }
 
           return context$2$0.abrupt('return', false);
 
-        case 15:
-          context$2$0.next = 17;
+        case 16:
+          context$2$0.next = 18;
           return regeneratorRuntime.awrap(client.apdex({
             app: app.id
           }));
 
-        case 17:
+        case 18:
           _ref = context$2$0.sent;
           apdex = _ref.apdex;
           enduser = _ref.enduser;
@@ -117,7 +118,7 @@ exports['default'] = function (bot) {
 
             bot.log.verbose('[newrelic] [' + app.name + '] apdex score spike ' + (current - avgApdex));
             if (compare(spike.apdex, current - avgApdex)) {
-              bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\n          is experiencing an apdex score spike!');
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\n            is experiencing an apdex score spike!');
             }
           }
 
@@ -125,15 +126,15 @@ exports['default'] = function (bot) {
           bot.log.verbose('[newrelic] [' + app.name + '] apdex score threshold ' + threshold.apdex);
 
           if (compare(threshold.apdex, avgApdex)) {
-            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n        score is ' + apdex + '!');
+            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n          score is ' + apdex + '!');
           }
 
-          context$2$0.next = 30;
+          context$2$0.next = 31;
           return regeneratorRuntime.awrap(client.error({
             app: app.id
           }));
 
-        case 30:
+        case 31:
           _ref2 = context$2$0.sent;
           errors = _ref2.errors;
           otherTransaction = _ref2.otherTransaction;
@@ -160,7 +161,7 @@ exports['default'] = function (bot) {
 
             bot.log.verbose('[newrelic] [' + app.name + '] error rate spike ' + (current - avgError));
             if (compare(spike.error, current - avgError)) {
-              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n          experiencing an errot rate spike!');
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n            experiencing an errot rate spike!');
             }
           }
 
@@ -168,53 +169,61 @@ exports['default'] = function (bot) {
           bot.log.verbose('[newrelic] [' + app.name + '] error rate spike threshold ' + spike.error);
 
           if (compare(threshold.error, avgError)) {
-            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n        is ' + error + '!');
+            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n          is ' + error + '!');
           }
+          context$2$0.next = 48;
+          break;
 
-        case 42:
+        case 45:
+          context$2$0.prev = 45;
+          context$2$0.t0 = context$2$0['catch'](9);
+
+          bot.log.info('[newrelic] [' + app.name + '] response error: ' + context$2$0.t0.title);
+
+        case 48:
           _iteratorNormalCompletion = true;
           context$2$0.next = 7;
           break;
 
-        case 45:
-          context$2$0.next = 51;
+        case 51:
+          context$2$0.next = 57;
           break;
 
-        case 47:
-          context$2$0.prev = 47;
-          context$2$0.t0 = context$2$0['catch'](5);
+        case 53:
+          context$2$0.prev = 53;
+          context$2$0.t1 = context$2$0['catch'](5);
           _didIteratorError = true;
-          _iteratorError = context$2$0.t0;
+          _iteratorError = context$2$0.t1;
 
-        case 51:
-          context$2$0.prev = 51;
-          context$2$0.prev = 52;
+        case 57:
+          context$2$0.prev = 57;
+          context$2$0.prev = 58;
 
           if (!_iteratorNormalCompletion && _iterator['return']) {
             _iterator['return']();
           }
 
-        case 54:
-          context$2$0.prev = 54;
+        case 60:
+          context$2$0.prev = 60;
 
           if (!_didIteratorError) {
-            context$2$0.next = 57;
+            context$2$0.next = 63;
             break;
           }
 
           throw _iteratorError;
 
-        case 57:
-          return context$2$0.finish(54);
+        case 63:
+          return context$2$0.finish(60);
 
-        case 58:
-          return context$2$0.finish(51);
+        case 64:
+          return context$2$0.finish(57);
 
-        case 59:
+        case 65:
         case 'end':
           return context$2$0.stop();
       }
-    }, null, this, [[5, 47, 51, 59], [52,, 54, 58]]);
+    }, null, this, [[5, 53, 57, 65], [9, 45], [58,, 60, 64]]);
   };
 
   bot.agenda.define('monitor-newrelic', process);
