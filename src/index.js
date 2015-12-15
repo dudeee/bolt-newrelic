@@ -27,6 +27,7 @@ export default bot => {
 
     for (let app of apps) {
       let enable = await isEnabled(app);
+      bot.log.verbose(`[newrelic] [${app.name}] is ${enable ? 'Enabled' : 'Disabled'}`);
       if (!enable) return false;
 
       let { apdex, enduser } = await client.apdex({
