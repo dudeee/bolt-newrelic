@@ -99,7 +99,7 @@ export default bot => {
           bot.log.verbose(`[newrelic] [${app.name}] error rate spike ${current - avgError}`);
           if (compare(spike.error, current - avgError)) {
             bot.sendMessage(target, `Newrelic Application *${app.name}* is
-            experiencing an errot rate spike!`)
+            experiencing an error rate spike!`)
           }
         }
 
