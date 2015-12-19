@@ -62,8 +62,8 @@ export default bot => {
         }
 
 
-        bot.log.verbose(`[newrelic] [${app.name}] apdex score spike threshold ${spike.apdex}`);
-        bot.log.verbose(`[newrelic] [${app.name}] apdex score threshold ${threshold.apdex}`);
+        bot.log.debug(`[newrelic] [${app.name}] apdex score spike threshold ${spike.apdex}`);
+        bot.log.debug(`[newrelic] [${app.name}] apdex score threshold ${threshold.apdex}`);
 
         if (compare(threshold.apdex, avgApdex)) {
           bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
@@ -103,15 +103,15 @@ export default bot => {
           }
         }
 
-        bot.log.verbose(`[newrelic] [${app.name}] error rate threshold ${threshold.error}`);
-        bot.log.verbose(`[newrelic] [${app.name}] error rate spike threshold ${spike.error}`);
+        bot.log.debug(`[newrelic] [${app.name}] error rate threshold ${threshold.error}`);
+        bot.log.debug(`[newrelic] [${app.name}] error rate spike threshold ${spike.error}`);
 
         if (compare(threshold.error, avgError)) {
           bot.sendMessage(target, `Newrelic Application *${app.name}*'s error rate
           is ${error}!`);
         }
       } catch(e) {
-        bot.log.info(`[newrelic] [${app.name}] response error:`, e);
+        bot.log.error(`[newrelic] [${app.name}] response error:`, e);
       }
     }
   };

@@ -122,8 +122,8 @@ exports['default'] = function (bot) {
             }
           }
 
-          bot.log.verbose('[newrelic] [' + app.name + '] apdex score spike threshold ' + spike.apdex);
-          bot.log.verbose('[newrelic] [' + app.name + '] apdex score threshold ' + threshold.apdex);
+          bot.log.debug('[newrelic] [' + app.name + '] apdex score spike threshold ' + spike.apdex);
+          bot.log.debug('[newrelic] [' + app.name + '] apdex score threshold ' + threshold.apdex);
 
           if (compare(threshold.apdex, avgApdex)) {
             bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n          score is ' + avgApdex + '!');
@@ -165,8 +165,8 @@ exports['default'] = function (bot) {
             }
           }
 
-          bot.log.verbose('[newrelic] [' + app.name + '] error rate threshold ' + threshold.error);
-          bot.log.verbose('[newrelic] [' + app.name + '] error rate spike threshold ' + spike.error);
+          bot.log.debug('[newrelic] [' + app.name + '] error rate threshold ' + threshold.error);
+          bot.log.debug('[newrelic] [' + app.name + '] error rate spike threshold ' + spike.error);
 
           if (compare(threshold.error, avgError)) {
             bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s error rate\n          is ' + error + '!');
@@ -178,7 +178,7 @@ exports['default'] = function (bot) {
           context$2$0.prev = 45;
           context$2$0.t0 = context$2$0['catch'](9);
 
-          bot.log.info('[newrelic] [' + app.name + '] response error:', context$2$0.t0);
+          bot.log.error('[newrelic] [' + app.name + '] response error:', context$2$0.t0);
 
         case 48:
           _iteratorNormalCompletion = true;
