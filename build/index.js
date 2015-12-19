@@ -126,7 +126,7 @@ exports['default'] = function (bot) {
           bot.log.verbose('[newrelic] [' + app.name + '] apdex score threshold ' + threshold.apdex);
 
           if (compare(threshold.apdex, avgApdex)) {
-            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n          score is ' + apdex + '!');
+            bot.sendMessage(target, 'Newrelic Application *' + app.name + '*\'s apdex\n          score is ' + avgApdex + '!');
           }
 
           context$2$0.next = 31;

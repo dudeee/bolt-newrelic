@@ -67,7 +67,7 @@ export default bot => {
 
         if (compare(threshold.apdex, avgApdex)) {
           bot.sendMessage(target, `Newrelic Application *${app.name}*'s apdex
-          score is ${apdex}!`);
+          score is ${avgApdex}!`);
         }
 
 
