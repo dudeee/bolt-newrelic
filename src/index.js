@@ -6,7 +6,7 @@ export default bot => {
   let { compare } = bot.utils;
 
   let client = new Client({
-    key: bot.data.newrelic.key
+    key: bot.config.newrelic.key
   });
 
   let model = bot.pocket.model('newrelicapp', {
@@ -15,7 +15,7 @@ export default bot => {
     enabled: Boolean
   });
 
-  let { threshold, target, spike } = bot.data.newrelic;
+  let { threshold, target, spike } = bot.config.newrelic;
 
   const isEnabled = async function(app) {
     return (await model.findOne({ id: app.id })).enabled;
@@ -144,7 +144,7 @@ export default bot => {
     }, { permissions: ['admin', 'server'] });
 
     bot.listen(/newrelic enable (.*)/i, async (message) => {
-      let [, app] = message.match;
+      let [app] = message.match;
 
       let apps = await client.apps();
 
@@ -159,7 +159,7 @@ export default bot => {
     }, { permissions: ['admin', 'server'] });
 
     bot.listen(/newrelic disable (.*)/i, async (message) => {
-      let [, app] = message.match;
+      let [app] = message.match;
 
       let apps = await client.apps();
 

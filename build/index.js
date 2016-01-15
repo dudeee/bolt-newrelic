@@ -20,7 +20,7 @@ exports['default'] = function (bot) {
   var compare = bot.utils.compare;
 
   var client = new _newrelicApi2['default']({
-    key: bot.data.newrelic.key
+    key: bot.config.newrelic.key
   });
 
   var model = bot.pocket.model('newrelicapp', {
@@ -29,10 +29,10 @@ exports['default'] = function (bot) {
     enabled: Boolean
   });
 
-  var _bot$data$newrelic = bot.data.newrelic;
-  var threshold = _bot$data$newrelic.threshold;
-  var target = _bot$data$newrelic.target;
-  var spike = _bot$data$newrelic.spike;
+  var _bot$config$newrelic = bot.config.newrelic;
+  var threshold = _bot$config$newrelic.threshold;
+  var target = _bot$config$newrelic.target;
+  var spike = _bot$config$newrelic.spike;
 
   var isEnabled = function isEnabled(app) {
     return regeneratorRuntime.async(function isEnabled$(context$2$0) {
@@ -161,7 +161,7 @@ exports['default'] = function (bot) {
 
             bot.log.verbose('[newrelic] [' + app.name + '] error rate spike ' + (current - avgError));
             if (compare(spike.error, current - avgError)) {
-              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n            experiencing an errot rate spike!');
+              bot.sendMessage(target, 'Newrelic Application *' + app.name + '* is\n            experiencing an error rate spike!');
             }
           }
 
@@ -291,8 +291,8 @@ exports['default'] = function (bot) {
             return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
               while (1) switch (context$3$0.prev = context$3$0.next) {
                 case 0:
-                  _message$match = _slicedToArray(message.match, 2);
-                  app = _message$match[1];
+                  _message$match = _slicedToArray(message.match, 1);
+                  app = _message$match[0];
                   context$3$0.next = 4;
                   return regeneratorRuntime.awrap(client.apps());
 
@@ -328,8 +328,8 @@ exports['default'] = function (bot) {
             return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
               while (1) switch (context$3$0.prev = context$3$0.next) {
                 case 0:
-                  _message$match2 = _slicedToArray(message.match, 2);
-                  app = _message$match2[1];
+                  _message$match2 = _slicedToArray(message.match, 1);
+                  app = _message$match2[0];
                   context$3$0.next = 4;
                   return regeneratorRuntime.awrap(client.apps());
 
